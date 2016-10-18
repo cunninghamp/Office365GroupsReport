@@ -1,4 +1,45 @@
-﻿#TODO - Write help info
+﻿<#
+.SYNOPSIS
+Reports on Office 365 Groups that have been created or modified since the script last ran.
+
+.DESCRIPTION 
+This script provides an email report of Office 365 Group status. Groups that have been created, modified, or unchanged are shown in the report.
+
+.OUTPUTS
+Email to defined recipient(s).
+
+.PARAMETER UseCredential
+Credentials to pass to Connect-EXOnline
+
+.EXAMPLE
+.\Get-O365GroupReport.ps1
+
+.LINK
+https://github.com/cunninghamp/Office365GroupsReport
+
+.NOTES
+
+Copyright (c) 2016 Paul Cunningham
+
+Permission is hereby granted, free of charge, to any person obtaining a copy 
+of this software and associated documentation files (the "Software"), to deal 
+in the Software without restriction, including without limitation the rights 
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+copies of the Software, and to permit persons to whom the Software is 
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all 
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+DEALINGS IN THE SOFTWARE.
+
+#>
 
 [CmdletBinding()]
 param (
