@@ -72,13 +72,15 @@ $UnmodifiedGroups = @()
 
 #TODO - Pull these from local XML instead of hard-coding in script
 #TODO - Dynamically determine SmtpServer based on MX of customer's domain?
+# If the $smtpSettings.SmtpServer value is either "" or $null, the script
+# will attempt to automatically derive the SMTP server from the recipient
+# domain's MX records
 $smtpsettings = @{
 	To =  "paul@practical365.com"
 	From = "paul@practical365.com"
 	Subject = "$reportemailsubject - $now"
-	SmtpServer = "locklan-com-au.mail.protection.outlook.com"
+	SmtpServer = $null
 	}
-
 
 #...................................
 # Script
@@ -220,6 +222,25 @@ catch {
     Write-Warning $_.Exception.Message
 }
 
+#...................................
+# Validate SMTP Settings
+#...................................
+
+# If there's no SMTP Server specified, attempt to derive one from MX records
+if ([string]::IsNullOrWhiteSpace($smtpSettings.SmtpServer)) {
+    Write-Verbose "No SMTP server was specified - deriving one from DNS"
+    try {
+        $recipientSmtpDomain = $smtpsettings.To.Split("@")[1]
+        $MX = Resolve-DnsName -Name $recipientSmtpDomain -Type MX | 
+            Where-Object {$_.Type -eq "MX"} | 
+            Sort-Object Preference | 
+            Select-Object -First 1 -ExpandProperty NameExchange
+        Write-Verbose "Found MX record: '$MX'"
+        $SmtpSettings.SmtpServer = $MX
+    } catch {
+        throw "Unable to resolve SMTP Server and none was specified.`n$($_.Exception.Message)"
+    }
+}
 
 #...................................
 # Build the report
