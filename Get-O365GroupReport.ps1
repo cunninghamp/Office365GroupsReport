@@ -294,9 +294,15 @@ else {
     $NewGroupsTable = $NewGroups | ConvertTo-Html -Fragment
 }
 
-#TODO - Add handling for zero results here so report doesn't get mangled
-$ModifiedGroupsIntro = "<p>Modified Groups found:</p>"
-$ModifiedGroupsTable = $ModifiedGroups | ConvertTo-Html -Fragment
+#Modified Groups
+$ModifiedGroupsIntro = "<h2>Modified Office 365 Groups</h2>"
+if ($($ModifiedGroups.Count) -eq 0 {
+    $ModifiedGroupsIntro += "<p>No modified Groups were found since the last report.</p>"
+}
+else {
+    $ModifiedGroupsIntro += "<p>Modified Groups found:</p>"
+    $ModifiedGroupsTable = $ModifiedGroups | ConvertTo-Html -Fragment
+}
 
 #TODO - Add handling for zero results here so report doesn't get mangled
 $UnmodifiedGroupsIntro = "<p>Unmodified Groups found:</p>"
