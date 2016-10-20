@@ -87,10 +87,28 @@ $smtpsettings = @{
 	SmtpServer = $settings.EmailSettings.SmtpServer
 	}
 
+
+#...................................
+# Functions
+#...................................
+
+Function ConnectToEXO() {
+    Write-Verbose "Admin credentials are required for connecting to Exchange Online."
+    $Credential = Get-Credential -Message "Enter your Exchange Online administrative credentials."
+    if ($Credential -ne $null) {
+        $URL = "https://outlook.office365.com/powershell-liveid/"
+        $EXOSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $URL -Credential $Credential -Authentication Basic -AllowRedirection -Name "Exchange Online"
+        Import-PSSession $EXOSession
+    }
+    else {
+        throw "A credential was not provided."
+    }
+}
+
+
 #...................................
 # Script
 #...................................
-
 
 #Check for previous results
 if (Test-Path $XMLFileName) {
@@ -109,36 +127,23 @@ try {
 catch {
     Write-Verbose "Get-UnifiedGroup cmdlet not available. Need to connect to Exchange Online."
 
-    try {
-        Get-Command Connect-EXOnline -ErrorAction STOP | Out-Null
-    }
-    catch {
-        Write-Warning $_.Exception.Message
-        Write-Warning "I recommend adding Connect-EXOnline to your PowerShell profile."
-        Write-Warning "Refer to: https://github.com/cunninghamp/Office-365-Scripts/tree/master/Connect-EXOnline"
-        EXIT
-    }
-
-    #Check if a stored credential is available to be used
     if ($UseCredential) {
+        
+        #Try connecting with Connect-EXOnline and stored credential
         try {
-            Connect-EXOnline -UseCredential $UseCredential
+            Connect-EXOnline -UseCredential $UseCredential -ErrorAction STOP | Out-Null
         }
         catch {
-            throw $_.Exception.Message
+            Write-Warning $_.Exception.Message
+            Write-Warning "I recommend adding Connect-EXOnline to your PowerShell profile (Refer to: https://github.com/cunninghamp/Office-365-Scripts/tree/master/Connect-EXOnline)"
+            Write-Warning "And the PSStoredCredentials functions (Refer to: http://practical365.com/blog/saving-credentials-for-office-365-powershell-scripts-and-scheduled-tasks/"
+        
+            Write-Warning "Using basic EXO connect function instead"
+            ConnectToEXO
         }
     }
     else {
-        Write-Warning "Admin credentials are required for connecting to Exchange Online."
-        $Credential = Get-Credential -Message "Enter your Exchange Online administrative credentials."
-        if ($Credential -ne $null) {
-            $URL = "https://outlook.office365.com/powershell-liveid/"
-            $EXOSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $URL -Credential $Credentials -Authentication Basic -AllowRedirection -Name "Exchange Online"
-            Import-PSSession $EXOSession
-        }
-        else {
-            throw "A credential was not provided."
-        }
+        ConnectToEXO
     }
 
 }
