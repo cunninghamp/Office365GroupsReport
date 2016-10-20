@@ -21,13 +21,6 @@ To install the script:
 4. Edit *Get-O365GroupReport.xml* with appropriate email settings for your environment. If you exclude the SMTP server, the script will send the report email to the first MX record for the domain of the *To* address.
 5. Run the script using the usage examples below.
 
-This script can make use of the following functions:
-
-- [Get-StoredCredential](http://practical365.com/blog/saving-credentials-for-office-365-powershell-scripts-and-scheduled-tasks/)
-- [Connect-EXOnline](https://github.com/cunninghamp/Office-365-Scripts/tree/master/Connect-EXOnline)
-
-By adding those functions to your PowerShell profile you can streamline the running of Get-O365GroupReport.ps1. Without those functions, you'll need to run the script from an existing PowerShell session that is connected to Exchange Online, or you'll be prompted for credentials to connect to Exchange Online.
-
 ##Usage  
 
 Run the script in a PowerShell console.
