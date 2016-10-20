@@ -95,7 +95,7 @@ $smtpsettings = @{
 #Check for previous results
 if (Test-Path $XMLFileName) {
     
-    #JSON file found, ingest as last results
+    #XML file found, ingest as last results
     $LastResults = Import-Clixml -Path $XMLFileName
 }
 else {
