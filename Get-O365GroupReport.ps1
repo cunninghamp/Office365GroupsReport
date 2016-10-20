@@ -296,7 +296,7 @@ else {
 
 #Modified Groups
 $ModifiedGroupsIntro = "<h2>Modified Office 365 Groups</h2>"
-if ($($ModifiedGroups.Count) -eq 0 {
+if ($($ModifiedGroups.Count) -eq 0) {
     $ModifiedGroupsIntro += "<p>No modified Groups were found since the last report.</p>"
 }
 else {
