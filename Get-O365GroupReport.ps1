@@ -285,8 +285,13 @@ $IntroHtml="<h1>Office 365 Groups Report</h1>
 #HTML report body
 
 #TODO - Add handling for zero results here so report doesn't get mangled
-$NewGroupsIntro = "<p>New Groups found:</p>"
-$NewGroupsTable = $NewGroups | ConvertTo-Html -Fragment
+if ($($NewGroups.Count) -eq 0) {
+    $NewGroupsIntro = "<p>No new Groups were found since the last report.</p>"
+}
+else {
+    $NewGroupsIntro = "<p>New Groups found:</p>"
+    $NewGroupsTable = $NewGroups | ConvertTo-Html -Fragment
+}
 
 #TODO - Add handling for zero results here so report doesn't get mangled
 $ModifiedGroupsIntro = "<p>Modified Groups found:</p>"
