@@ -279,7 +279,7 @@ $htmlhead="<html>
 			<body>"
 
 #HTML intro
-$IntroHtml="<h1>Office 365 Groups Report</h1>
+$IntroHtml = "<h1>Office 365 Groups Report</h1>
 			<p><strong>Generated:</strong> $now</p>"
 
 #HTML report body
@@ -321,7 +321,7 @@ $htmltail = "<p>Report created by <a href=""http://practical365.com"">Practical3
             </body>
 			</html>"
 
-$htmlreport = $htmlhead + $IntoHtml + $ReportBodyHtml + $htmltail
+$htmlreport = $htmlhead + $IntroHtml + $ReportBodyHtml + $htmltail
 
 #TODO - Add option to output to HTML file
 
