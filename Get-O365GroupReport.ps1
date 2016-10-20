@@ -256,7 +256,7 @@ $htmlhead="<html>
 			<style>
 			BODY{font-family: Arial; font-size: 10pt;}
 			H1{font-size: 22px;}
-			H2{font-size: 20px; padding-top: 10px;}
+			H2{font-size: 18px; padding-top: 10px;}
 			H3{font-size: 16px; padding-top: 8px;}
 			TABLE{border: 1px solid black; border-collapse: collapse; font-size: 8pt; table-layout: fixed;}
             TABLE.testresults{width: 850px;}
