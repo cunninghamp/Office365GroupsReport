@@ -147,7 +147,7 @@ catch {
 # Retrieve current list of Groups
 #...................................
 
-$UnifiedGroups = @(Get-UnifiedGroup | Select Guid,DisplayName,AccessType,Notes,ManagedBy,WhenCreated,WhenChanged)
+$UnifiedGroups = @(Get-UnifiedGroup | Select Guid,DisplayName,AccessType,Notes,ManagedBy,WhenCreated)
 
 $LastResultsGuids = $LastResults.Guid
 
@@ -158,7 +158,15 @@ foreach ($Guid in $UnifiedGroups.Guid) {
     if ($LastResultsGuids -icontains $Guid) {
         
         #Build a custom object to store the group's details for the report and any changed properties
-        $GroupObject = New-Object -TypeName PSObject
+        $objectProperties = [ordered]@{
+				"DisplayName" = $null
+				"AccessType" = $null
+				"Notes" = $null
+				"ManagedBy" = $null
+				"WhenCreated" = $null
+				}
+        
+        $GroupObject = New-Object -TypeName PSObject -Property $objectProperties
 
         $HasChanged = $false
         $Changes = @()
@@ -173,16 +181,19 @@ foreach ($Guid in $UnifiedGroups.Guid) {
         #Compare each property to determine if any have changed
         foreach ($Property in $GroupProperties) {
             
-            if ($CurrentObject.$Property -ieq $PreviousObject.$Property) {
+            #Compare all properties except Guid
+            if (-not($Property -eq "Guid")) {
+                if ($CurrentObject.$Property -ieq $PreviousObject.$Property) {
             
-                Write-Verbose "No change detected for $Property"
-                $GroupObject | Add-Member NoteProperty -Name $Property -Value $CurrentObject.$Property
-            }
-            else {
+                    Write-Verbose "No change detected for $Property"
+                    $GroupObject.$Property = $CurrentObject.$Property
+                }
+                else {
 
-                Write-Verbose "$Property is different (was $($PreviousObject.$Property), and is now $($CurrentObject.$Property))"
-                $HasChanged = $true
-                $GroupObject | Add-Member NoteProperty -Name $Property -Value "$($CurrentObject.$Property) (was $($PreviousObject.$Property))"
+                    Write-Verbose "$Property is different (was $($PreviousObject.$Property), and is now $($CurrentObject.$Property))"
+                    $HasChanged = $true
+                    $GroupObject.$Property = "$($CurrentObject.$Property) (was $($PreviousObject.$Property))"
+                }
             }
         }
 
@@ -203,7 +214,7 @@ foreach ($Guid in $UnifiedGroups.Guid) {
 
         Write-Verbose "Group does not exist in previous results, therefore is a new group"
 
-        $NewObject = $UnifiedGroups | Where {$_.Guid -eq $Guid}
+        $NewObject = $UnifiedGroups | Where {$_.Guid -eq $Guid} | Select DisplayName,AccessType,Notes,ManagedBy,WhenCreated
 
         $NewGroups += $NewObject
 
