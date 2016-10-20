@@ -58,8 +58,6 @@ $myDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 $XMLFileName = "$($myDir)\UnifiedGroups.xml"
 
-$reportemailsubject = "Office 365 Groups Report"
-
 $NewGroups = @()
 $ModifiedGroups = @()
 $DeletedGroups = @()
@@ -67,19 +65,26 @@ $UnmodifiedGroups = @()
 
 
 #...................................
-# Email Settings
+# Settings
 #...................................
 
-#TODO - Pull these from local XML instead of hard-coding in script
-#TODO - Dynamically determine SmtpServer based on MX of customer's domain?
+# Import settings from configuration file
+$ScriptName = $([System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name))
+$ConfigFile = Join-Path -Path $MyDir -ChildPath "$ScriptName.xml"
+if (-not (Test-Path $ConfigFile)) {
+    throw "Could not find configuration file! Be sure to rename the '$ScriptName.xml.sample' file to '$ScriptName.xml'."
+}
+
+$settings = ([xml](Get-Content $ConfigFile)).Settings
+
 # If the $smtpSettings.SmtpServer value is either "" or $null, the script
 # will attempt to automatically derive the SMTP server from the recipient
 # domain's MX records
 $smtpsettings = @{
-	To =  "paul@practical365.com"
-	From = "paul@practical365.com"
-	Subject = "$reportemailsubject - $now"
-	SmtpServer = $null
+	To =  $settings.EmailSettings.To
+	From = $settings.EmailSettings.From
+	Subject = "$($settings.EmailSettings.Subject) - $now"
+	SmtpServer = $settings.EmailSettings.SmtpServer
 	}
 
 #...................................
@@ -90,7 +95,7 @@ $smtpsettings = @{
 #Check for previous results
 if (Test-Path $XMLFileName) {
     
-    #JSON file found, ingest as last results
+    #XML file found, ingest as last results
     $LastResults = Import-Clixml -Path $XMLFileName
 }
 else {
@@ -227,16 +232,16 @@ catch {
 #...................................
 
 # If there's no SMTP Server specified, attempt to derive one from MX records
-if ([string]::IsNullOrWhiteSpace($smtpSettings.SmtpServer)) {
+if ([string]::IsNullOrWhiteSpace($settings.EmailSettings.SmtpServer)) {
     Write-Verbose "No SMTP server was specified - deriving one from DNS"
     try {
-        $recipientSmtpDomain = $smtpsettings.To.Split("@")[1]
+        $recipientSmtpDomain = $settings.EmailSettings.To.Split("@")[1]
         $MX = Resolve-DnsName -Name $recipientSmtpDomain -Type MX | 
             Where-Object {$_.Type -eq "MX"} | 
             Sort-Object Preference | 
             Select-Object -First 1 -ExpandProperty NameExchange
         Write-Verbose "Found MX record: '$MX'"
-        $SmtpSettings.SmtpServer = $MX
+        $smtpsettings.SmtpServer = $MX
     } catch {
         throw "Unable to resolve SMTP Server and none was specified.`n$($_.Exception.Message)"
     }
