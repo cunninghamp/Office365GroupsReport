@@ -189,10 +189,32 @@ foreach ($Guid in $UnifiedGroups.Guid) {
                     $GroupObject.$Property = $CurrentObject.$Property
                 }
                 else {
+                    
+                    #If a value is null, replace with string "blank"
 
-                    Write-Verbose "$Property is different (was $($PreviousObject.$Property), and is now $($CurrentObject.$Property))"
+                    if ($($PreviousObject.$Property) -eq $null -or $($PreviousObject.$Property) -eq "") {
+                        $previous = "blank"
+                    }
+                    else {
+                        $previous = $PreviousObject.$Property
+                    }
+
+                    if ($($CurrentObject.$Property) -eq $null -or $($CurrentObject.$Property) -eq "") {
+                        $current = "Blank"
+                    }
+                    else {
+                        $current = $CurrentObject.$Property
+                    }
+
+                    if ($current -ceq "Blank") {
+                        Write-Verbose "$Property is different (was $previous, and is now $($current.ToLower())"
+                    }
+                    else {
+                        Write-Verbose "$Property is different (was $previous, and is now $current)"
+                    }
+
                     $HasChanged = $true
-                    $GroupObject.$Property = "$($CurrentObject.$Property) (was $($PreviousObject.$Property))"
+                    $GroupObject.$Property = "$current (was $($previous))"
                 }
             }
         }
