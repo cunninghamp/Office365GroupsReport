@@ -132,6 +132,7 @@ catch {
         Write-Warning "Admin credentials are required for connecting to Exchange Online."
         $Credential = Get-Credential -Message "Enter your Exchange Online administrative credentials."
         if ($Credential -ne $null) {
+            $URL = "https://outlook.office365.com/powershell-liveid/"
             $EXOSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $URL -Credential $Credentials -Authentication Basic -AllowRedirection -Name "Exchange Online"
             Import-PSSession $EXOSession
         }
