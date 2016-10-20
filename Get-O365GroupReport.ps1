@@ -243,6 +243,26 @@ foreach ($Guid in $UnifiedGroups.Guid) {
     }
 }
 
+#Loop through Last Results to check for deleted groups
+
+$CurrentGuids = $UnifiedGroups.Guid
+
+foreach ($Guid in $LastResultsGuids) {
+    Write-Verbose "Checking if $Guid has been deleted since last report"
+
+    if (-not ($CurrentGuids -icontains $Guid)) {
+    
+        Write-Verbose "Group $Guid has been deleted since last report"
+
+        $DeletedObject = $LastResults | Where {$_.Guid -eq $Guid} | Select DisplayName,AccessType,Notes,ManagedBy,WhenCreated
+
+        $DeletedGroups += $DeletedObject
+
+    }
+
+}
+
+#Output a summary
 
 Write-Verbose "============ Summary ============"
 
@@ -337,6 +357,16 @@ else {
     $ModifiedGroupsTable = $ModifiedGroups | ConvertTo-Html -Fragment
 }
 
+#Deleted Groups
+$DeletedGroupsIntro = "<h2>Deleted Office 365 Groups</h2>"
+if ($($DeletedGroups.Count) -eq 0) {
+    $DeletedGroupsIntro += "<p>No deleted Groups were found since the last report.</p>"
+}
+else {
+    $DeletedGroupsIntro += "<p>Deleted Groups found:</p>"
+    $DeletedGroupsTable = $DeletedGroups | ConvertTo-Html -Fragment
+}
+
 #Unmodified Groups
 $UnmodifiedGroupsIntro = "<h2>Unmodified Office 365 Groups</h2>"
 if ($($UnmodifiedGroups.Count) -eq 0) {
@@ -347,7 +377,7 @@ else {
     $UnmodifiedGroupsTable = $UnmodifiedGroups | ConvertTo-Html -Fragment
 }
 
-$ReportBodyHtml = $NewGroupsIntro + $NewGroupsTable + $ModifiedGroupsIntro + $ModifiedGroupsTable + $UnmodifiedGroupsIntro + $UnmodifiedGroupsTable
+$ReportBodyHtml = $NewGroupsIntro + $NewGroupsTable + $ModifiedGroupsIntro + $ModifiedGroupsTable + $DeletedGroupsIntro + $DeletedGroupsTable + $UnmodifiedGroupsIntro + $UnmodifiedGroupsTable
 
 #HTML TAIL
 $htmltail = "<p>Report created by <a href=""http://practical365.com"">Practical365</a>.</p>
