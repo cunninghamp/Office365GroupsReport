@@ -284,12 +284,13 @@ $IntroHtml="<h1>Office 365 Groups Report</h1>
 
 #HTML report body
 
-#TODO - Add handling for zero results here so report doesn't get mangled
+#New Groups
+$NewGroupsIntro = "<h2>New Office 365 Groups</h2>"
 if ($($NewGroups.Count) -eq 0) {
-    $NewGroupsIntro = "<p>No new Groups were found since the last report.</p>"
+    $NewGroupsIntro += "<p>No new Groups were found since the last report.</p>"
 }
 else {
-    $NewGroupsIntro = "<p>New Groups found:</p>"
+    $NewGroupsIntro += "<p>New Groups found:</p>"
     $NewGroupsTable = $NewGroups | ConvertTo-Html -Fragment
 }
 
