@@ -15,7 +15,7 @@ By adding those functions to your PowerShell profile you can streamline the runn
 
 To install the script:
 
-1. Download the latest release from GitHub or the TechNet Script Gallery.
+1. Download the latest release from [GitHub](https://github.com/cunninghamp/Office365GroupsReport/releases) or the [TechNet Script Gallery](https://gallery.technet.microsoft.com/office/Office-365-Groups-Report-7e3e161b).
 2. Unzip the files to a folder on the workstation or server where you want to run the script.
 3. Rename *Get-O365GroupReport.xml.sample* to *Get-O365GroupReport.xml*
 4. Edit *Get-O365GroupReport.xml* with appropriate email settings for your environment. If you exclude the SMTP server, the script will send the report email to the first MX record for the domain of the *To* address.
