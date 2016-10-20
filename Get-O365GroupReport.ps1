@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-Reports on Office 365 Groups that have been created or modified since the script last ran.
+Get-O365GroupReport.ps1 - Reports on Office 365 Groups that have been created or modified since the script last ran.
 
 .DESCRIPTION 
 This script provides an email report of Office 365 Group status. Groups that have been created, modified, or unchanged are shown in the report.
@@ -9,17 +9,41 @@ This script provides an email report of Office 365 Group status. Groups that hav
 Email to defined recipient(s).
 
 .PARAMETER UseCredential
-Credentials to pass to Connect-EXOnline
+Credentials to pass to Connect-EXOnline. Requires that the Connect-EXOnline
+function (https://github.com/cunninghamp/Office-365-Scripts/tree/master/Connect-EXOnline) and
+the Get-StoredCredential function (http://practical365.com/blog/saving-credentials-for-office-365-powershell-scripts-and-scheduled-tasks/)
+be available. If those functions are not available, the script will fall back
+on a basic Exchange Online connection function that will prompt for
+admin credentials.
 
 .EXAMPLE
 .\Get-O365GroupReport.ps1
+
+.EXAMPLE
+.\Get-O365GroupReport.ps1 -UseCredential admin@tenantname.onmicrosoft.com
+
+.EXAMPLE
+.\Get-O365GroupReport.ps1 -Verbose
 
 .LINK
 https://github.com/cunninghamp/Office365GroupsReport
 
 .NOTES
+Written by Paul Cunningham and Chris Brown
 
-Copyright (c) 2016 Paul Cunningham
+For more Office 365 tips, tutorials and news
+check out Practical365.com.
+
+
+Version history:
+V1.00, 20/10/2016 - Initial version
+
+
+License:
+
+The MIT License (MIT)
+
+Copyright (c) 2015 Paul Cunningham
 
 Permission is hereby granted, free of charge, to any person obtaining a copy 
 of this software and associated documentation files (the "Software"), to deal 
