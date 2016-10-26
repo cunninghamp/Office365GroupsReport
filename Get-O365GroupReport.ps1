@@ -68,7 +68,15 @@ DEALINGS IN THE SOFTWARE.
 [CmdletBinding()]
 param (
         [Parameter(Mandatory=$false)]
-        [string]$UseCredential
+        [string]$UseCredential,
+        [Parameter(Mandatory=$false)]
+        [string]$MailTo,
+        [Parameter(Mandatory=$false)]
+        [string]$MailFrom,
+        [Parameter(Mandatory=$false)]
+        [string]$MailSubject,
+        [Parameter(Mandatory=$false)]
+        [string]$SmtpServer
 )
 
 
@@ -96,19 +104,27 @@ $UnmodifiedGroups = @()
 $ScriptName = $([System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name))
 $ConfigFile = Join-Path -Path $MyDir -ChildPath "$ScriptName.xml"
 if (-not (Test-Path $ConfigFile)) {
-    throw "Could not find configuration file! Be sure to rename the '$ScriptName.xml.sample' file to '$ScriptName.xml'."
-}
+    # Config file not found, make sure the minimum mandatory variables have been provided
+    if (-not ($MailTo -and $MailFrom)) {
+        # Config file not found, and no required parameters were provided 
+        throw "Could not find configuration file! Be sure to rename the '$ScriptName.xml.sample' file to '$ScriptName.xml'. Alternatively, provide -Mail* arguments (see Get-Help for more information)." 
+    } else {
+        # Config file not found, but parameters were provided
 
-$settings = ([xml](Get-Content $ConfigFile)).Settings
+    }
+} else {
+    $settings = ([xml](Get-Content $ConfigFile)).Settings
+}
 
 # If the $smtpSettings.SmtpServer value is either "" or $null, the script
 # will attempt to automatically derive the SMTP server from the recipient
 # domain's MX records
+# If values are provided as arguments, use those, otherwise retrieve from XML file
 $smtpsettings = @{
-	To =  $settings.EmailSettings.To
-	From = $settings.EmailSettings.From
-	Subject = "$($settings.EmailSettings.Subject) - $now"
-	SmtpServer = $settings.EmailSettings.SmtpServer
+	To =  if ($MailTo) { $MailTo } else { $settings.EmailSettings.To }
+	From = if ($MailFrom) { $MailFrom } else { $settings.EmailSettings.From }
+	Subject = "$(if ($MailSubject) { $MailSubject } elseif ($settings.EmailSettings.Subject) { $settings.EmailSettings.Subject } else { "Office 365 Groups Report" } ) - $now"
+	SmtpServer = if ($SmtpServer) { $SmtpServer } else { $settings.EmailSettings.SmtpServer }
 	}
 
 
@@ -315,10 +331,10 @@ catch {
 #...................................
 
 # If there's no SMTP Server specified, attempt to derive one from MX records
-if ([string]::IsNullOrWhiteSpace($settings.EmailSettings.SmtpServer)) {
+if ([string]::IsNullOrWhiteSpace($smtpsettings.SmtpServer)) {
     Write-Verbose "No SMTP server was specified - deriving one from DNS"
     try {
-        $recipientSmtpDomain = $settings.EmailSettings.To.Split("@")[1]
+        $recipientSmtpDomain = $SmtpSettings.To.Split("@")[1]
         $MX = Resolve-DnsName -Name $recipientSmtpDomain -Type MX | 
             Where-Object {$_.Type -eq "MX"} | 
             Sort-Object Preference | 
