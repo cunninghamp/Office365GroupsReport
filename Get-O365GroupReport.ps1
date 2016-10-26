@@ -88,8 +88,6 @@ $now = Get-Date
 
 $myDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-$XMLFileName = "$($myDir)\UnifiedGroups.xml"
-
 $NewGroups = @()
 $ModifiedGroups = @()
 $DeletedGroups = @()
@@ -150,17 +148,8 @@ Function ConnectToEXO() {
 # Script
 #...................................
 
-#Check for previous results
-if (Test-Path $XMLFileName) {
-    
-    #XML file found, ingest as last results
-    $LastResults = Import-Clixml -Path $XMLFileName
-}
-else {
-    Write-Verbose "No previous results found."
-}
 
-#Check whether an EXO remote session is already established and requires cmdlet is available
+#Check whether an EXO remote session is already established and required cmdlet is available
 try {
     Get-Command Get-UnifiedGroup -ErrorAction STOP | Out-Null
 }
@@ -188,6 +177,23 @@ catch {
 
 }
 
+#...................................
+# Determine XML file name
+#...................................
+
+$orgIdentifier = (Get-OrganizationConfig).Name
+
+$XMLFileName = "$($myDir)\UnifiedGroups-$($orgIdentifier).xml"
+
+#Check for previous results
+if (Test-Path $XMLFileName) {
+    
+    #XML file found, ingest as last results
+    $LastResults = Import-Clixml -Path $XMLFileName
+}
+else {
+    Write-Verbose "No previous results found."
+}
 
 #...................................
 # Retrieve current list of Groups
