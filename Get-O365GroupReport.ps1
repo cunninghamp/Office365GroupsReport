@@ -233,40 +233,70 @@ foreach ($Guid in $UnifiedGroups.Guid) {
         #Compare each property to determine if any have changed
         foreach ($Property in $GroupProperties) {
             
-            #Compare all properties except Guid
-            if (-not($Property -eq "Guid")) {
-                if ($CurrentObject.$Property -ieq $PreviousObject.$Property) {
-            
-                    Write-Verbose "No change detected for $Property"
-                    $GroupObject.$Property = $CurrentObject.$Property
-                }
-                else {
-                    
-                    #If a value is null, replace with string "blank"
+            if ($CurrentObject.$Property.GetType().Name -eq "ArrayList" -or $PreviousObject.$Property.GetType().Name -eq "ArrayList") {
+                # Find any records added
+                $recordsAdded = $CurrentObject.$Property | Where { $PreviousObject.$Property -notcontains $_ }
+                $recordsRemoved = $PreviousObject.$Property | Where { $CurrentObject.$Property -notcontains $_ }
 
-                    if ($($PreviousObject.$Property) -eq $null -or $($PreviousObject.$Property) -eq "") {
-                        $previous = "blank"
-                    }
-                    else {
-                        $previous = $PreviousObject.$Property
-                    }
-
-                    if ($($CurrentObject.$Property) -eq $null -or $($CurrentObject.$Property) -eq "") {
-                        $current = "Blank"
-                    }
-                    else {
-                        $current = $CurrentObject.$Property
-                    }
-
-                    if ($current -ceq "Blank") {
-                        Write-Verbose "$Property is different (was $previous, and is now $($current.ToLower())"
-                    }
-                    else {
-                        Write-Verbose "$Property is different (was $previous, and is now $current)"
-                    }
-
+                if ($recordsAdded -and $recordsRemoved) { 
+                    # Records were added and removed
                     $HasChanged = $true
-                    $GroupObject.$Property = "$current (was $($previous))"
+                    Write-Verbose "$Property had changes (Added: $($recordsAdded -join ", "). Removed: $($recordsRemoved -join ", "))."
+                    $GroupObject.$Property = "$($CurrentObject.$Property -join ", ")"
+
+                } elseif ($recordsAdded) {
+                    # Records were added
+                    $HasChanged = $true
+                    Write-Verbose "$Property had changes (Added: $($recordsAdded -join ", "))."
+                    $GroupObject.$Property = "$($CurrentObject.$Property -join ", ")"
+
+                } elseif ($recordsRemoved) {
+                    # Records were removed
+                    $HasChanged = $true
+                    Write-Verbose "$Property had changes (Removed: $($recordsRemoved -join ", "))."
+                    $GroupObject.$Property = "$($CurrentObject.$Property -join ", ")"
+
+                } else {
+                    # No change 
+                    Write-Verbose "No change detected for $Property"
+                    $GroupObject.$Property = "$($CurrentObject.$Property -join ", ")"
+                }
+            } else {
+                #Compare all non-arraylist properties except Guid
+                if (-not($Property -eq "Guid")) {
+                    if ($CurrentObject.$Property -ieq $PreviousObject.$Property) {
+                
+                        Write-Verbose "No change detected for $Property"
+                        $GroupObject.$Property = $CurrentObject.$Property
+                    }
+                    else {
+                        
+                        #If a value is null, replace with string "blank"
+                        
+                        if ($($PreviousObject.$Property) -eq $null -or $($PreviousObject.$Property) -eq "") {
+                            $previous = "blank"
+                        }
+                        else {
+                            $previous = $PreviousObject.$Property
+                        }
+
+                        if ($($CurrentObject.$Property) -eq $null -or $($CurrentObject.$Property) -eq "") {
+                            $current = "Blank"
+                        }
+                        else {
+                            $current = $CurrentObject.$Property
+                        }
+
+                        if ($current -ceq "Blank") {
+                            Write-Verbose "$Property is different (was $previous, and is now $($current.ToLower())"
+                        }
+                        else {
+                            Write-Verbose "$Property is different (was $previous, and is now $current)"
+                        }
+
+                        $HasChanged = $true
+                        $GroupObject.$Property = "$current (was $($previous))"
+                    }
                 }
             }
         }
@@ -280,7 +310,7 @@ foreach ($Guid in $UnifiedGroups.Guid) {
         else {
         
             $UnmodifiedGroups += $GroupObject
-        
+
         }
             
     }
