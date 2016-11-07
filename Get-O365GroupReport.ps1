@@ -356,16 +356,6 @@ Write-Verbose "New groups: $($NewGroups.Count)"
 Write-Verbose "Modified groups: $($ModifiedGroups.Count)"
 Write-Verbose "Unmodified groups: $($UnmodifiedGroups.Count)"
 
-#Output current Groups info to XML for next run
-#TODO - preserve last X copies of XML file as a backup for troubleshooting
-try {
-    Write-Verbose "Writing current groups info to XML for comparison on next run."
-    $UnifiedGroups | Export-Clixml -Path $XMLFileName -ErrorAction STOP
-}
-catch {
-    Write-Warning $_.Exception.Message
-}
-
 #...................................
 # Validate SMTP Settings
 #...................................
@@ -489,6 +479,21 @@ catch {
     Write-Warning $_.Exception.Message
     Write-Verbose "Email report not sent."
 }
+
+#...................................
+# Save XML file to disk
+#...................................
+
+#Output current Groups info to XML for next run
+#TODO - preserve last X copies of XML file as a backup for troubleshooting
+try {
+    Write-Verbose "Writing current groups info to XML for comparison on next run."
+    $UnifiedGroups | Export-Clixml -Path $XMLFileName -ErrorAction STOP
+}
+catch {
+    Write-Warning $_.Exception.Message
+}
+
 
 #...................................
 # Finished
