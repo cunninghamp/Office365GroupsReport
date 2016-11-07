@@ -474,10 +474,12 @@ $htmlreport = $htmlhead + $IntroHtml + $ReportBodyHtml + $htmltail
 try {
     Send-MailMessage @smtpsettings -Body $htmlreport -BodyAsHtml -ErrorAction STOP
     Write-Verbose "Email report sent."
+    $commitXmlToDisk = $true
 }
 catch {
     Write-Warning $_.Exception.Message
     Write-Verbose "Email report not sent."
+    $commitXmlToDisk = $false
 }
 
 #...................................
@@ -486,14 +488,32 @@ catch {
 
 #Output current Groups info to XML for next run
 #TODO - preserve last X copies of XML file as a backup for troubleshooting
-try {
-    Write-Verbose "Writing current groups info to XML for comparison on next run."
-    $UnifiedGroups | Export-Clixml -Path $XMLFileName -ErrorAction STOP
-}
-catch {
-    Write-Warning $_.Exception.Message
+
+if ($commitXmlToDisk) {
+    try {
+        Write-Verbose "Writing current groups info to XML for comparison on next run."
+        
+        $historyPath = Join-Path $myDir "history"
+
+        if ((Test-Path $historyPath) -eq $false) {
+            # The history directory doesn't exist
+            $null = New-Item -Path $historyPath -ItemType Directory
+        }
+        # Move the current XML file into the "history" folder
+        $historyXmlFilename = Join-Path $historyPath ([System.IO.Path]::GetFileNameWithoutExtension($XMLFileName) + "-" + $now.ToString("yyyyMMddHHmm") + ".xml")
+        Write-Verbose "Moving '$XMLFileName' to '$historyXmlFilename'"
+        Move-Item -Path $XMLFileName -Destination $historyXmlFilename
+        $UnifiedGroups | Export-Clixml -Path $XMLFileName -ErrorAction STOP 
+    } catch {
+        Write-Warning $_.Exception.Message
+    }
 }
 
+# Delete old history items
+Write-Verbose "Deleting all history items except the newest $($settings.HistoryItemsToKeep)"
+$historyItems = Get-ChildItem $historyPath "*.xml"
+$itemsToDelete = $historyItems | Sort-Object -Property Name | Select -First $($historyItems.Count - $settings.HistoryItemsToKeep)
+$itemsToDelete | Remove-Item -Force -Verbose
 
 #...................................
 # Finished

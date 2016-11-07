@@ -7,4 +7,5 @@
         <!-- If SmtpServer is empty, the script will autodetect -->
         <SmtpServer></SmtpServer>
     </EmailSettings>
+    <HistoryItemsToKeep>10</HistoryItemsToKeep>
 </Settings>
