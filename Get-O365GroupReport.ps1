@@ -185,6 +185,9 @@ $orgIdentifier = (Get-OrganizationConfig).Name
 
 $XMLFileName = "$($myDir)\UnifiedGroups-$($orgIdentifier).xml"
 
+# $isFirstRun is used to flag whether this is the first time the script has run
+$isFirstRun = $false
+
 #Check for previous results
 if (Test-Path $XMLFileName) {
     
@@ -193,6 +196,7 @@ if (Test-Path $XMLFileName) {
 }
 else {
     Write-Verbose "No previous results found."
+    $isFirstRun = $true
 }
 
 #...................................
@@ -410,12 +414,18 @@ $htmlhead="<html>
 			td.fail{background: #FF0000; color: #ffffff;}
 			td.info{background: #85D4FF;}
             ul{list-style: inside; padding-left: 0px;}
+            .firstrunnotice { font-size: 14px; color: #4286f4; }
 			</style>
 			<body>"
 
 #HTML intro
 $IntroHtml = "<h1>Office 365 Groups Report</h1>
 			<p><strong>Generated:</strong> $now</p>"
+
+if ($isFirstRun) {
+    $IntroHtml = $introHtml + '<p class="firstrunnotice">Note: This is the first execution of the report, so all Groups will be marked as <em>New</em>.</p>'
+} 
+
 
 #HTML report body
 
