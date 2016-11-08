@@ -538,10 +538,14 @@ if ($commitXmlToDisk) {
 }
 
 # Delete old history items
-Write-Verbose "Deleting all history items except the newest $($settings.HistoryItemsToKeep)"
-$historyItems = Get-ChildItem $historyPath "*.xml"
-$itemsToDelete = $historyItems | Sort-Object -Property Name | Select -First $($historyItems.Count - $settings.HistoryItemsToKeep)
-$itemsToDelete | Remove-Item -Force
+if ($settings.HistoryItemsToKeep) {
+    Write-Verbose "Deleting all history items except the newest $($settings.HistoryItemsToKeep)"
+    $historyItems = Get-ChildItem $historyPath "*.xml"
+    $itemsToDelete = $historyItems | Sort-Object -Property Name | Select -First $($historyItems.Count - $settings.HistoryItemsToKeep)
+    $itemsToDelete | Remove-Item -Force
+} else {
+    Write-Warning "HistoryItemsToKeep is not defined in '$ConfigFile'. No historical data copies will be deleted."
+}
 
 #...................................
 # Finished
