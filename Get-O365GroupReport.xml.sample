@@ -8,4 +8,6 @@
         <SmtpServer></SmtpServer>
     </EmailSettings>
     <HistoryItemsToKeep>10</HistoryItemsToKeep>
+    <!-- If 1, will only email if changes are detected. If 0 or absent, will always email. -->
+    <EmailOnlyIfChanges>1</EmailOnlyIfChanges>
 </Settings>

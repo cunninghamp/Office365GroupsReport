@@ -468,17 +468,38 @@ $htmltail = "<p>Report created by <a href=""http://practical365.com"">Practical3
 
 $htmlreport = $htmlhead + $IntroHtml + $ReportBodyHtml + $htmltail
 
+# Determine whether the report should be sent or not, based on settings and 
+# if there are changes
+if (($DeletedGroups.Count -gt 0) -or 
+    ($ModifiedGroups.Count -gt 0) -or 
+    ($NewGroups.Count -gt 0)) {
+      # One or more changes occured, send the report
+      $sendReport = $true 
+} else {
+      # No changes occurred, only send the report if the user requested it
+      if (($settings.EmailOnlyIfChanges -eq '1') -or ($settings.EmailOnlyIfchanges -eq $null)) {
+          $sendREport = $true
+      } else {
+          $sendReport = $false
+      }
+}
+
+
 #TODO - Add option to output to HTML file
 
 #TODO - Make this a parameter/switch
 try {
-    Send-MailMessage @smtpsettings -Body $htmlreport -BodyAsHtml -ErrorAction STOP
-    Write-Verbose "Email report sent."
+    if ($sendReport) {
+        Send-MailMessage @smtpsettings -Body $htmlreport -BodyAsHtml -ErrorAction STOP
+        Write-Verbose "Email report sent."
+    } else {
+        Write-Verbose "Email report not sent as 'EmailOnlyIfChanges' is not set to '1'"
+    }
     $commitXmlToDisk = $true
 }
 catch {
     Write-Warning $_.Exception.Message
-    Write-Verbose "Email report not sent."
+    Write-Verbose "Email report not sent as an exception occurred."
     $commitXmlToDisk = $false
 }
 
@@ -513,7 +534,7 @@ if ($commitXmlToDisk) {
 Write-Verbose "Deleting all history items except the newest $($settings.HistoryItemsToKeep)"
 $historyItems = Get-ChildItem $historyPath "*.xml"
 $itemsToDelete = $historyItems | Sort-Object -Property Name | Select -First $($historyItems.Count - $settings.HistoryItemsToKeep)
-$itemsToDelete | Remove-Item -Force -Verbose
+$itemsToDelete | Remove-Item -Force
 
 #...................................
 # Finished
