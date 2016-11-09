@@ -477,10 +477,10 @@ if (($DeletedGroups.Count -gt 0) -or
       $sendReport = $true 
 } else {
       # No changes occurred, only send the report if the user requested it
-      if (($settings.EmailOnlyIfChanges -eq '1') -or ($settings.EmailOnlyIfchanges -eq $null)) {
-          $sendREport = $true
-      } else {
+      if (($settings.EmailOnlyIfChanges -eq '1')) {
           $sendReport = $false
+      } else {
+          $sendReport = $true
       }
 }
 
@@ -493,7 +493,7 @@ try {
         Send-MailMessage @smtpsettings -Body $htmlreport -BodyAsHtml -ErrorAction STOP
         Write-Verbose "Email report sent."
     } else {
-        Write-Verbose "Email report not sent as 'EmailOnlyIfChanges' is not set to '1'"
+        Write-Verbose "Email report not sent as 'EmailOnlyIfChanges' is to '1'"
     }
     $commitXmlToDisk = $true
 }
