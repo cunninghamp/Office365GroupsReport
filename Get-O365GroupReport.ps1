@@ -413,7 +413,7 @@ $IntroHtml = "<h1>Office 365 Groups Report</h1>
 			<p><strong>Generated:</strong> $now</p>"
 
 if ($isFirstRun) {
-    $IntroHtml = $introHtml + '<p class="firstrunnotice">Note: This is the first execution of the report, so all Groups will be marked as <em>New</em>.</p>'
+    $IntroHtml = $introHtml + '<p class="firstrunnotice"><strong>Note:</strong> Either this is the first time the report has been run, or no history file was found. All Groups will be marked as <em>New</em> in this report.</p>'
 } 
 
 
