@@ -535,7 +535,8 @@ if ($commitXmlToDisk) {
                     Write-Warning $_.Exception.Message
                 }
             }
-        } else {
+        }
+        else {
             if (Test-Path $XMLFileName) {
                 try {
                     Move-Item -Path $XMLFileName -Destination $historyXmlFilename -ErrorAction STOP
@@ -546,18 +547,22 @@ if ($commitXmlToDisk) {
             }
         }
         $UnifiedGroups | Export-Clixml -Path $XMLFileName -ErrorAction STOP 
-    } catch {
+    }
+    catch {
         Write-Warning $_.Exception.Message
     }
 }
 
 # Delete old history items
 if ($settings.HistoryItemsToKeep) {
-    Write-Verbose "Deleting all history items except the newest $($settings.HistoryItemsToKeep)"
-    $historyItems = Get-ChildItem $historyPath "*.xml"
-    $itemsToDelete = $historyItems | Sort-Object -Property Name | Select -First $($historyItems.Count - $settings.HistoryItemsToKeep)
-    $itemsToDelete | Remove-Item -Force
-} else {
+    $historyItems = @(Get-ChildItem $historyPath "*.xml")
+    if ($($historyItems.Count -gt $settings.HistoryItemsToKeep)) {
+        Write-Verbose "Deleting all history items except the newest $($settings.HistoryItemsToKeep)"
+        $itemsToDelete = $historyItems | Sort-Object -Property Name | Select -First $($historyItems.Count - $settings.HistoryItemsToKeep)
+        $itemsToDelete | Remove-Item -Force
+    }
+}
+else {
     Write-Warning "HistoryItemsToKeep is not defined in '$ConfigFile'. No historical data copies will be deleted."
 }
 
