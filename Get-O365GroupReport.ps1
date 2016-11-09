@@ -493,7 +493,7 @@ try {
         Send-MailMessage @smtpsettings -Body $htmlreport -BodyAsHtml -ErrorAction STOP
         Write-Verbose "Email report sent."
     } else {
-        Write-Verbose "Email report not sent as 'EmailOnlyIfChanges' is to '1'"
+        Write-Verbose "Email report not sent as 'EmailOnlyIfChanges' is not set to '0'."
     }
     $commitXmlToDisk = $true
 }
