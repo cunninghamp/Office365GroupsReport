@@ -37,7 +37,10 @@ check out Practical365.com.
 
 Version history:
 V1.00, 20/10/2016 - Initial version
+V1.01, 09/11/2016 - Bug fixes and improvements
 
+Detailed release notes:
+https://github.com/cunninghamp/Office365GroupsReport/releases
 
 License:
 
