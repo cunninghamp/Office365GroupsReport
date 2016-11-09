@@ -527,9 +527,23 @@ if ($commitXmlToDisk) {
             # The destination already exists, add Ticks to the filename
             $historyXmlFilenameUnique = Join-Path $historyPath ([System.IO.Path]::GetFileNameWithoutExtension($historyXmlFilename) + "-" + $now.Ticks +".xml")
             Write-Verbose "'$historyXmlFilename' already exists. Moving file to '$historyXmlFilenameUnique' instead."
-            Move-Item -Path $XMLFileName -Destination $historyXmlFilenameUnique
+            if (Test-Path $XMLFileName) {
+                try {
+                    Move-Item -Path $XMLFileName -Destination $historyXmlFilenameUnique -ErrorAction STOP
+                }
+                catch {
+                    Write-Warning $_.Exception.Message
+                }
+            }
         } else {
-            Move-Item -Path $XMLFileName -Destination $historyXmlFilename
+            if (Test-Path $XMLFileName) {
+                try {
+                    Move-Item -Path $XMLFileName -Destination $historyXmlFilename -ErrorAction STOP
+                }
+                catch {
+                    Write-Warning $_.Exception.Message
+                }
+            }
         }
         $UnifiedGroups | Export-Clixml -Path $XMLFileName -ErrorAction STOP 
     } catch {
