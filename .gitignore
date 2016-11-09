@@ -1,3 +1,4 @@
 Get-O365GroupReport.xml
-UnifiedGroups.xml
+UnifiedGroups-*.xml
 .vscode
+history/

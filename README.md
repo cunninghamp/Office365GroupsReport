@@ -21,6 +21,13 @@ To install the script:
 4. Edit *Get-O365GroupReport.xml* with appropriate email settings for your environment. If you exclude the SMTP server, the script will send the report email to the first MX record for the domain of the *To* address.
 5. Run the script using the usage examples below.
 
+##Configuration
+
+You can customize the behavior of the script by editing settings in the Get-O365GroupReport.xml file.
+
+- **HistoryItemsToKeep:** defines the number of previous UnifiedGroups.xml files that will be preserved in the \history folder. The default is 10. History files might be useful to you for manual comparisons.
+- **EmailOnlyIfChanges:** controls whether to send the email report if there are no new, modified, or deleted groups detected. The default is 1, which means the email report will not send if there's no changes. If you prefer to receive the report every time, change the value to 0. 
+
 ##Usage  
 
 Run the script in a PowerShell console.
@@ -41,6 +48,11 @@ Run the script with verbose output.
 .\Get-O365GroupReport.ps1 -Verbose
 ```
 
+Run the script with manual SMTP settings that override the Get-O365GroupReport.xml configuration.
+
+```
+.\Get-O365GroupReport.ps1 -MailFrom reports@contoso.com -MailTo you@contoso.com -MailSubject "Your custom subject" -SmtpServer mail.contoso.com
+```
 
 ##Credits
 

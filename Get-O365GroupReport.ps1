@@ -37,13 +37,16 @@ check out Practical365.com.
 
 Version history:
 V1.00, 20/10/2016 - Initial version
+V1.01, 09/11/2016 - Bug fixes and improvements
 
+Detailed release notes:
+https://github.com/cunninghamp/Office365GroupsReport/releases
 
 License:
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Paul Cunningham
+Copyright (c) 2016 Paul Cunningham
 
 Permission is hereby granted, free of charge, to any person obtaining a copy 
 of this software and associated documentation files (the "Software"), to deal 
@@ -68,7 +71,15 @@ DEALINGS IN THE SOFTWARE.
 [CmdletBinding()]
 param (
         [Parameter(Mandatory=$false)]
-        [string]$UseCredential
+        [string]$UseCredential,
+        [Parameter(Mandatory=$false)]
+        [string]$MailTo,
+        [Parameter(Mandatory=$false)]
+        [string]$MailFrom,
+        [Parameter(Mandatory=$false)]
+        [string]$MailSubject,
+        [Parameter(Mandatory=$false)]
+        [string]$SmtpServer
 )
 
 
@@ -79,8 +90,6 @@ param (
 $now = Get-Date
 
 $myDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-
-$XMLFileName = "$($myDir)\UnifiedGroups.xml"
 
 $NewGroups = @()
 $ModifiedGroups = @()
@@ -96,19 +105,27 @@ $UnmodifiedGroups = @()
 $ScriptName = $([System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name))
 $ConfigFile = Join-Path -Path $MyDir -ChildPath "$ScriptName.xml"
 if (-not (Test-Path $ConfigFile)) {
-    throw "Could not find configuration file! Be sure to rename the '$ScriptName.xml.sample' file to '$ScriptName.xml'."
-}
+    # Config file not found, make sure the minimum mandatory variables have been provided
+    if (-not ($MailTo -and $MailFrom)) {
+        # Config file not found, and no required parameters were provided 
+        throw "Could not find configuration file! Be sure to rename the '$ScriptName.xml.sample' file to '$ScriptName.xml'. Alternatively, provide -Mail* arguments (see Get-Help for more information)." 
+    } else {
+        # Config file not found, but parameters were provided
 
-$settings = ([xml](Get-Content $ConfigFile)).Settings
+    }
+} else {
+    $settings = ([xml](Get-Content $ConfigFile)).Settings
+}
 
 # If the $smtpSettings.SmtpServer value is either "" or $null, the script
 # will attempt to automatically derive the SMTP server from the recipient
 # domain's MX records
+# If values are provided as arguments, use those, otherwise retrieve from XML file
 $smtpsettings = @{
-	To =  $settings.EmailSettings.To
-	From = $settings.EmailSettings.From
-	Subject = "$($settings.EmailSettings.Subject) - $now"
-	SmtpServer = $settings.EmailSettings.SmtpServer
+	To =  if ($MailTo) { $MailTo } else { $settings.EmailSettings.To }
+	From = if ($MailFrom) { $MailFrom } else { $settings.EmailSettings.From }
+	Subject = "$(if ($MailSubject) { $MailSubject } elseif ($settings.EmailSettings.Subject) { $settings.EmailSettings.Subject } else { "Office 365 Groups Report" } ) - $now"
+	SmtpServer = if ($SmtpServer) { $SmtpServer } else { $settings.EmailSettings.SmtpServer }
 	}
 
 
@@ -134,17 +151,8 @@ Function ConnectToEXO() {
 # Script
 #...................................
 
-#Check for previous results
-if (Test-Path $XMLFileName) {
-    
-    #XML file found, ingest as last results
-    $LastResults = Import-Clixml -Path $XMLFileName
-}
-else {
-    Write-Verbose "No previous results found."
-}
 
-#Check whether an EXO remote session is already established and requires cmdlet is available
+#Check whether an EXO remote session is already established and required cmdlet is available
 try {
     Get-Command Get-UnifiedGroup -ErrorAction STOP | Out-Null
 }
@@ -172,6 +180,27 @@ catch {
 
 }
 
+#...................................
+# Determine XML file name
+#...................................
+
+$orgIdentifier = (Get-OrganizationConfig).Name
+
+$XMLFileName = "$($myDir)\UnifiedGroups-$($orgIdentifier).xml"
+
+# $isFirstRun is used to flag whether this is the first time the script has run
+$isFirstRun = $false
+
+#Check for previous results
+if (Test-Path $XMLFileName) {
+    
+    #XML file found, ingest as last results
+    $LastResults = Import-Clixml -Path $XMLFileName
+}
+else {
+    Write-Verbose "No previous results found."
+    $isFirstRun = $true
+}
 
 #...................................
 # Retrieve current list of Groups
@@ -211,40 +240,70 @@ foreach ($Guid in $UnifiedGroups.Guid) {
         #Compare each property to determine if any have changed
         foreach ($Property in $GroupProperties) {
             
-            #Compare all properties except Guid
-            if (-not($Property -eq "Guid")) {
-                if ($CurrentObject.$Property -ieq $PreviousObject.$Property) {
-            
-                    Write-Verbose "No change detected for $Property"
-                    $GroupObject.$Property = $CurrentObject.$Property
-                }
-                else {
-                    
-                    #If a value is null, replace with string "blank"
+            if ($CurrentObject.$Property.GetType().Name -eq "ArrayList" -or $PreviousObject.$Property.GetType().Name -eq "ArrayList") {
+                # Find any records added
+                $recordsAdded = $CurrentObject.$Property | Where { $PreviousObject.$Property -notcontains $_ }
+                $recordsRemoved = $PreviousObject.$Property | Where { $CurrentObject.$Property -notcontains $_ }
 
-                    if ($($PreviousObject.$Property) -eq $null -or $($PreviousObject.$Property) -eq "") {
-                        $previous = "blank"
-                    }
-                    else {
-                        $previous = $PreviousObject.$Property
-                    }
-
-                    if ($($CurrentObject.$Property) -eq $null -or $($CurrentObject.$Property) -eq "") {
-                        $current = "Blank"
-                    }
-                    else {
-                        $current = $CurrentObject.$Property
-                    }
-
-                    if ($current -ceq "Blank") {
-                        Write-Verbose "$Property is different (was $previous, and is now $($current.ToLower())"
-                    }
-                    else {
-                        Write-Verbose "$Property is different (was $previous, and is now $current)"
-                    }
-
+                if ($recordsAdded -and $recordsRemoved) { 
+                    # Records were added and removed
                     $HasChanged = $true
-                    $GroupObject.$Property = "$current (was $($previous))"
+                    Write-Verbose "$Property had changes (Added: $($recordsAdded -join ", "). Removed: $($recordsRemoved -join ", "))."
+                    $GroupObject.$Property = "$($CurrentObject.$Property -join ", ")"
+
+                } elseif ($recordsAdded) {
+                    # Records were added
+                    $HasChanged = $true
+                    Write-Verbose "$Property had changes (Added: $($recordsAdded -join ", "))."
+                    $GroupObject.$Property = "$($CurrentObject.$Property -join ", ")"
+
+                } elseif ($recordsRemoved) {
+                    # Records were removed
+                    $HasChanged = $true
+                    Write-Verbose "$Property had changes (Removed: $($recordsRemoved -join ", "))."
+                    $GroupObject.$Property = "$($CurrentObject.$Property -join ", ")"
+
+                } else {
+                    # No change 
+                    Write-Verbose "No change detected for $Property"
+                    $GroupObject.$Property = "$($CurrentObject.$Property -join ", ")"
+                }
+            } else {
+                #Compare all non-arraylist properties except Guid
+                if (-not($Property -eq "Guid")) {
+                    if ($CurrentObject.$Property -ieq $PreviousObject.$Property) {
+                
+                        Write-Verbose "No change detected for $Property"
+                        $GroupObject.$Property = $CurrentObject.$Property
+                    }
+                    else {
+                        
+                        #If a value is null, replace with string "blank"
+                        
+                        if ($($PreviousObject.$Property) -eq $null -or $($PreviousObject.$Property) -eq "") {
+                            $previous = "blank"
+                        }
+                        else {
+                            $previous = $PreviousObject.$Property
+                        }
+
+                        if ($($CurrentObject.$Property) -eq $null -or $($CurrentObject.$Property) -eq "") {
+                            $current = "Blank"
+                        }
+                        else {
+                            $current = $CurrentObject.$Property
+                        }
+
+                        if ($current -ceq "Blank") {
+                            Write-Verbose "$Property is different (was $previous, and is now $($current.ToLower())"
+                        }
+                        else {
+                            Write-Verbose "$Property is different (was $previous, and is now $current)"
+                        }
+
+                        $HasChanged = $true
+                        $GroupObject.$Property = "$current (was $($previous))"
+                    }
                 }
             }
         }
@@ -258,7 +317,7 @@ foreach ($Guid in $UnifiedGroups.Guid) {
         else {
         
             $UnmodifiedGroups += $GroupObject
-        
+
         }
             
     }
@@ -300,25 +359,15 @@ Write-Verbose "New groups: $($NewGroups.Count)"
 Write-Verbose "Modified groups: $($ModifiedGroups.Count)"
 Write-Verbose "Unmodified groups: $($UnmodifiedGroups.Count)"
 
-#Output current Groups info to XML for next run
-#TODO - preserve last X copies of XML file as a backup for troubleshooting
-try {
-    Write-Verbose "Writing current groups info to XML for comparison on next run."
-    $UnifiedGroups | Export-Clixml -Path $XMLFileName -ErrorAction STOP
-}
-catch {
-    Write-Warning $_.Exception.Message
-}
-
 #...................................
 # Validate SMTP Settings
 #...................................
 
 # If there's no SMTP Server specified, attempt to derive one from MX records
-if ([string]::IsNullOrWhiteSpace($settings.EmailSettings.SmtpServer)) {
+if ([string]::IsNullOrWhiteSpace($smtpsettings.SmtpServer)) {
     Write-Verbose "No SMTP server was specified - deriving one from DNS"
     try {
-        $recipientSmtpDomain = $settings.EmailSettings.To.Split("@")[1]
+        $recipientSmtpDomain = $SmtpSettings.To.Split("@")[1]
         $MX = Resolve-DnsName -Name $recipientSmtpDomain -Type MX | 
             Where-Object {$_.Type -eq "MX"} | 
             Sort-Object Preference | 
@@ -358,12 +407,18 @@ $htmlhead="<html>
 			td.fail{background: #FF0000; color: #ffffff;}
 			td.info{background: #85D4FF;}
             ul{list-style: inside; padding-left: 0px;}
+            .firstrunnotice { font-size: 14px; color: #4286f4; }
 			</style>
 			<body>"
 
 #HTML intro
 $IntroHtml = "<h1>Office 365 Groups Report</h1>
 			<p><strong>Generated:</strong> $now</p>"
+
+if ($isFirstRun) {
+    $IntroHtml = $introHtml + '<p class="firstrunnotice"><strong>Note:</strong> Either this is the first time the report has been run, or no history file was found. All Groups will be marked as <em>New</em> in this report.</p>'
+} 
+
 
 #HTML report body
 
@@ -416,16 +471,102 @@ $htmltail = "<p>Report created by <a href=""http://practical365.com"">Practical3
 
 $htmlreport = $htmlhead + $IntroHtml + $ReportBodyHtml + $htmltail
 
+# Determine whether the report should be sent or not, based on settings and 
+# if there are changes
+if (($DeletedGroups.Count -gt 0) -or 
+    ($ModifiedGroups.Count -gt 0) -or 
+    ($NewGroups.Count -gt 0)) {
+      # One or more changes occured, send the report
+      $sendReport = $true 
+} else {
+      # No changes occurred, only send the report if the user requested it
+      if (($settings.EmailOnlyIfChanges -eq '1')) {
+          $sendReport = $false
+      } else {
+          $sendReport = $true
+      }
+}
+
+
 #TODO - Add option to output to HTML file
 
 #TODO - Make this a parameter/switch
 try {
-    Send-MailMessage @smtpsettings -Body $htmlreport -BodyAsHtml -ErrorAction STOP
-    Write-Verbose "Email report sent."
+    if ($sendReport) {
+        Send-MailMessage @smtpsettings -Body $htmlreport -BodyAsHtml -ErrorAction STOP
+        Write-Verbose "Email report sent."
+    } else {
+        Write-Verbose "Email report not sent as 'EmailOnlyIfChanges' is not set to '0'."
+    }
+    $commitXmlToDisk = $true
 }
 catch {
     Write-Warning $_.Exception.Message
-    Write-Verbose "Email report not sent."
+    Write-Verbose "Email report not sent as an exception occurred."
+    $commitXmlToDisk = $false
+}
+
+#...................................
+# Save XML file to disk
+#...................................
+
+#Output current Groups info to XML for next run
+#TODO - preserve last X copies of XML file as a backup for troubleshooting
+
+if ($commitXmlToDisk) {
+    try {
+        Write-Verbose "Writing current groups info to XML for comparison on next run."
+        
+        $historyPath = Join-Path $myDir "history"
+
+        if ((Test-Path $historyPath) -eq $false) {
+            # The history directory doesn't exist
+            $null = New-Item -Path $historyPath -ItemType Directory
+        }
+        # Move the current XML file into the "history" folder
+        $historyXmlFilename = Join-Path $historyPath ([System.IO.Path]::GetFileNameWithoutExtension($XMLFileName) + "-" + $now.ToString("yyyyMMddHHmm") + ".xml")
+        Write-Verbose "Moving '$XMLFileName' to '$historyXmlFilename'"
+        if (Test-Path $historyXmlFilename) {
+            # The destination already exists, add Ticks to the filename
+            $historyXmlFilenameUnique = Join-Path $historyPath ([System.IO.Path]::GetFileNameWithoutExtension($historyXmlFilename) + "-" + $now.Ticks +".xml")
+            Write-Verbose "'$historyXmlFilename' already exists. Moving file to '$historyXmlFilenameUnique' instead."
+            if (Test-Path $XMLFileName) {
+                try {
+                    Move-Item -Path $XMLFileName -Destination $historyXmlFilenameUnique -ErrorAction STOP
+                }
+                catch {
+                    Write-Warning $_.Exception.Message
+                }
+            }
+        }
+        else {
+            if (Test-Path $XMLFileName) {
+                try {
+                    Move-Item -Path $XMLFileName -Destination $historyXmlFilename -ErrorAction STOP
+                }
+                catch {
+                    Write-Warning $_.Exception.Message
+                }
+            }
+        }
+        $UnifiedGroups | Export-Clixml -Path $XMLFileName -ErrorAction STOP 
+    }
+    catch {
+        Write-Warning $_.Exception.Message
+    }
+}
+
+# Delete old history items
+if ($settings.HistoryItemsToKeep) {
+    $historyItems = @(Get-ChildItem $historyPath "*.xml")
+    if ($($historyItems.Count -gt $settings.HistoryItemsToKeep)) {
+        Write-Verbose "Deleting all history items except the newest $($settings.HistoryItemsToKeep)"
+        $itemsToDelete = $historyItems | Sort-Object -Property Name | Select -First $($historyItems.Count - $settings.HistoryItemsToKeep)
+        $itemsToDelete | Remove-Item -Force
+    }
+}
+else {
+    Write-Warning "HistoryItemsToKeep is not defined in '$ConfigFile'. No historical data copies will be deleted."
 }
 
 #...................................
