@@ -4,7 +4,7 @@ Get-O365GroupReport.ps1 is a PowerShell script that generates an email report ab
 
 The script will store information about the Office 365 Groups in your tenant in a file named *UnifiedGroups.xml*, located in the same folder as the script. The first time you run the script, all Groups will be reported as "New". On subsequent runs, the script will use the previous results to determine which Groups are new, modified, or deleted since the last time the script was run.
 
-##Installation
+## Installation
 
 This script can make use of the following functions:
 
@@ -21,14 +21,14 @@ To install the script:
 4. Edit *Get-O365GroupReport.xml* with appropriate email settings for your environment. If you exclude the SMTP server, the script will send the report email to the first MX record for the domain of the *To* address.
 5. Run the script using the usage examples below.
 
-##Configuration
+## Configuration
 
 You can customize the behavior of the script by editing settings in the Get-O365GroupReport.xml file.
 
 - **HistoryItemsToKeep:** defines the number of previous UnifiedGroups.xml files that will be preserved in the \history folder. The default is 10. History files might be useful to you for manual comparisons.
 - **EmailOnlyIfChanges:** controls whether to send the email report if there are no new, modified, or deleted groups detected. The default is 1, which means the email report will not send if there's no changes. If you prefer to receive the report every time, change the value to 0. 
 
-##Usage  
+## Usage  
 
 Run the script in a PowerShell console.
 
@@ -54,7 +54,7 @@ Run the script with manual SMTP settings that override the Get-O365GroupReport.x
 .\Get-O365GroupReport.ps1 -MailFrom reports@contoso.com -MailTo you@contoso.com -MailSubject "Your custom subject" -SmtpServer mail.contoso.com
 ```
 
-##Credits
+## Credits
 
 Written by:
 
