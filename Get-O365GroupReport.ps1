@@ -540,7 +540,17 @@ else {
     $UnmodifiedGroupsTable = $UnmodifiedGroups | ConvertTo-Html -Fragment
 }
 
-$ReportBodyHtml = $NewGroupsIntro + $NewGroupsTable + $ModifiedGroupsIntro + $ModifiedGroupsTable + $DeletedGroupsIntro + $DeletedGroupsTable + $UnmodifiedGroupsIntro + $UnmodifiedGroupsTable
+#Recoverable Groups
+$RecoverableGroupsIntro = "<h2>Recoverable Deleted Office 365 Groups</h2>"
+if ($($RecoverableGroups.Count) -eq 0) {
+    $RecoverableGroupsIntro += "<p>No recoverable deleted Groups exist.</p>"
+}
+else {
+    $RecoverableGroupsIntro += "<p>Recoverable deleted Groups found:</p>"
+    $RecoverableGroupsTable = $RecoverableGroups | ConvertTo-Html -Fragment
+}
+
+$ReportBodyHtml = $NewGroupsIntro + $NewGroupsTable + $ModifiedGroupsIntro + $ModifiedGroupsTable + $DeletedGroupsIntro + $DeletedGroupsTable + $RecoverableGroupsIntro + $RecoverableGroupsTable + $UnmodifiedGroupsIntro + $UnmodifiedGroupsTable
 
 #HTML TAIL
 $htmltail = "<p>Report created by <a href=""http://practical365.com"">Practical365</a>.</p>
