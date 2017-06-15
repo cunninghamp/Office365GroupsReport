@@ -236,6 +236,7 @@ else {
 #...................................
 
 $UnifiedGroups = @(Get-UnifiedGroup | Select Guid,DisplayName,AccessType,Notes,ManagedBy,WhenCreated,ExternalDirectoryObjectId)
+$AllRecoverableGroups = Get-AzureADMSDeletedGroup
 
 $LastResultsGuids = $LastResults.Guid
 
@@ -374,6 +375,16 @@ foreach ($Guid in $LastResultsGuids) {
 
         $DeletedObject = $LastResults | Where {$_.Guid -eq $Guid} | Select DisplayName,AccessType,Notes,ManagedBy,WhenCreated,ExternalDirectoryObjectId
 
+        #Get the time stamp the group was deleted
+        $RecoverableGroup = $AllRecoverableGroups | Where {$_.Id -eq $GroupObject.ExternalDirectoryObjectId}
+
+        if (-not($RecoverableGroup)) {
+            $WhenDeleted = "Not found."
+        }
+        else {
+            $WhenDeleted = $RecoverableGroup.DeletedDateTime.ToShortDateString()
+        }
+
         #Custom object for deleted groups
         $objectProperties = [ordered]@{
 				"DisplayName" = $DeletedObject.DisplayName
@@ -382,13 +393,12 @@ foreach ($Guid in $LastResultsGuids) {
                 "ManagedBy" = $DeletedObject.ManagedBy
                 "WhenCreated" = $DeletedObject.WhenCreated
                 "ObjectId" = $DeletedObject.ExternalDirectoryObjectId
-                "Recovery Days Remaining" = $null
+                "WhenDeleted" = $RecoverableGroup.WhenDeleted
 				}
         
         $GroupObject = New-Object -TypeName PSObject -Property $objectProperties
 
         $DeletedGroups += $DeletedObject
-
     }
 
 }
@@ -485,12 +495,12 @@ else {
 }
 
 #Deleted Groups
-$DeletedGroupsIntro = "<h2>Deleted Office 365 Groups</h2>"
+$DeletedGroupsIntro = "<h2>Newly Deleted Office 365 Groups</h2>"
 if ($($DeletedGroups.Count) -eq 0) {
-    $DeletedGroupsIntro += "<p>No deleted Groups were found since the last report.</p>"
+    $DeletedGroupsIntro += "<p>No newly deleted Groups were found since the last report.</p>"
 }
 else {
-    $DeletedGroupsIntro += "<p>Deleted Groups found:</p>"
+    $DeletedGroupsIntro += "<p>Newly deleted Groups found:</p>"
     $DeletedGroupsTable = $DeletedGroups | ConvertTo-Html -Fragment
 }
 
