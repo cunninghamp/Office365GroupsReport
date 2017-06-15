@@ -105,6 +105,7 @@ $NewGroups = @()
 $ModifiedGroups = @()
 $DeletedGroups = @()
 $UnmodifiedGroups = @()
+$RecoverableGroups = @()
 
 
 #...................................
@@ -236,7 +237,7 @@ else {
 #...................................
 
 $UnifiedGroups = @(Get-UnifiedGroup | Select Guid,DisplayName,AccessType,Notes,ManagedBy,WhenCreated,ExternalDirectoryObjectId)
-$AllRecoverableGroups = Get-AzureADMSDeletedGroup
+$AllRecoverableGroups = @(Get-AzureADMSDeletedGroup)
 
 $LastResultsGuids = $LastResults.Guid
 
@@ -401,6 +402,31 @@ foreach ($Guid in $LastResultsGuids) {
         $DeletedGroups += $DeletedObject
     }
 
+}
+
+#Calculate recoverable days remaining for recoverable groups
+
+if ($AllRecoverableGroups.Count -eq 0) {
+    $NoRecoverableGroups = $true
+}
+else {
+    foreach ($RecoverableGroup in $AllRecoverableGroups) {
+        
+        $RecoveryDaysRemaining = 30 - ($now - $RecoverableGroup.DeletedDateTime)
+
+        #Custom object for recoverable groups
+        $objectProperties = [ordered]@{
+				"DisplayName" = $RecoverableGroup.DisplayName
+				"Visibility" = $RecoverableGroup.Visibility
+				"Description" = $RecoverableGroup.Description
+                "WhenDeleted" = $RecoverableGroup.DeletedDateTime.ToShortDateString()
+                "Recovery Days Remaining" = $RecoveryDaysRemaining
+				}
+        
+        $GroupObject = New-Object -TypeName PSObject -Property $objectProperties
+
+        $RecoverableGroups += $GroupObject
+    }
 }
 
 #Output a summary
