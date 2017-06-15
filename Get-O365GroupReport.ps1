@@ -353,7 +353,20 @@ foreach ($Guid in $LastResultsGuids) {
     
         Write-Verbose "Group $Guid has been deleted since last report"
 
-        $DeletedObject = $LastResults | Where {$_.Guid -eq $Guid} | Select DisplayName,AccessType,Notes,ManagedBy,WhenCreated
+        $DeletedObject = $LastResults | Where {$_.Guid -eq $Guid} | Select DisplayName,AccessType,Notes,ManagedBy,WhenCreated,ExternalDirectoryObjectId
+
+        #Custom object for deleted groups
+        $objectProperties = [ordered]@{
+				"DisplayName" = $DeletedObject.DisplayName
+				"AccessType" = $DeletedObject.AccessType
+				"Notes" = $DeletedObject.Notes
+                "ManagedBy" = $DeletedObject.ManagedBy
+                "WhenCreated" = $DeletedObject.WhenCreated
+                "ObjectId" = $DeletedObject.ExternalDirectoryObjectId
+                "Recovery Days Remaining" = $null
+				}
+        
+        $GroupObject = New-Object -TypeName PSObject -Property $objectProperties
 
         $DeletedGroups += $DeletedObject
 
