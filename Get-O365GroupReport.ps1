@@ -38,6 +38,7 @@ check out Practical365.com.
 Version history:
 V1.00, 20/10/2016 - Initial version
 V1.01, 09/11/2016 - Bug fixes and improvements
+V1.02-Beta, 15/06/02017 - Added reporting of recoverable deleted groups
 
 Detailed release notes:
 https://github.com/cunninghamp/Office365GroupsReport/releases

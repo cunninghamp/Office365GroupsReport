@@ -6,6 +6,8 @@ The script will store information about the Office 365 Groups in your tenant in 
 
 ## Installation
 
+This script has a dependency on the AzureADPreview module.
+
 This script can make use of the following functions:
 
 - [Get-StoredCredential](http://practical365.com/blog/saving-credentials-for-office-365-powershell-scripts-and-scheduled-tasks/)
@@ -14,6 +16,8 @@ This script can make use of the following functions:
 By adding those functions to your PowerShell profile you can streamline the running of Get-O365GroupReport.ps1. Without those functions, you'll need to run the script from an existing PowerShell session that is connected to Exchange Online, or you'll be prompted for credentials to connect to Exchange Online.
 
 To install the script:
+
+**Note:** For v1.02-Beta [download the zip file here](https://github.com/cunninghamp/Office365GroupsReport/archive/1.02-beta.zip)
 
 1. Download the latest release from [GitHub](https://github.com/cunninghamp/Office365GroupsReport/releases) or the [TechNet Script Gallery](https://gallery.technet.microsoft.com/office/Office-365-Groups-Report-7e3e161b).
 2. Unzip the files to a folder on the workstation or server where you want to run the script.
