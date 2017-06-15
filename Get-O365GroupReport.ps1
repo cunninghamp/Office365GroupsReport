@@ -187,7 +187,23 @@ catch {
     else {
         ConnectToEXO
     }
+}
 
+#Check whether an AzureAD session is established and required cmdlet is available
+try {
+    Get-Command Get-​AzureADMSDeletedGroup -ErrorAction STOP | Out-Null
+}
+catch {
+    Write-Verbose "Get-AzureADMSDeletedGroup cmdlet not available. Need to connect to Azure AD."
+
+    if ($UseCredential) {
+        try {
+            AzureADPreview\Connect-AzureAD -Credential (Get-StoredCredential -UserName $UseCredential) -ErrorAction STOP | Out-Null
+        }
+        catch {
+            throw $_.Exception.Message
+        }
+    }
 }
 
 #...................................
