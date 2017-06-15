@@ -254,6 +254,7 @@ foreach ($Guid in $UnifiedGroups.Guid) {
 				"Notes" = $null
 				"ManagedBy" = $null
 				"WhenCreated" = $null
+                "ExternalDirectoryObjectId" = $null
 				}
         
         $GroupObject = New-Object -TypeName PSObject -Property $objectProperties
