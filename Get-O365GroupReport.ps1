@@ -134,8 +134,8 @@ $smtpsettings = @{
 #...................................
 
 Function ConnectToEXO() {
-    Write-Verbose "Admin credentials are required for connecting to Exchange Online."
-    $Credential = Get-Credential -Message "Enter your Exchange Online administrative credentials."
+    Write-Verbose "Credentials are required for connecting to Exchange Online."
+    $Credential = Get-Credential -Message "Enter your Exchange Online credentials."
     if ($Credential -ne $null) {
         $URL = "https://outlook.office365.com/powershell-liveid/"
         $EXOSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $URL -Credential $Credential -Authentication Basic -AllowRedirection -Name "Exchange Online"
