@@ -413,7 +413,7 @@ if ($AllRecoverableGroups.Count -eq 0) {
 else {
     foreach ($RecoverableGroup in $AllRecoverableGroups) {
         
-        $RecoveryDaysRemaining = (30 - ($now - $RecoverableGroup.DeletedDateTime)).Days
+        $RecoveryDaysRemaining = 30 - ($now - $RecoverableGroup.DeletedDateTime).Days
 
         #Custom object for recoverable groups
         $objectProperties = [ordered]@{
@@ -548,7 +548,7 @@ if ($($RecoverableGroups.Count) -eq 0) {
 }
 else {
     $RecoverableGroupsIntro += "<p>Recoverable deleted Groups found:</p>"
-    $RecoverableGroupsTable = $RecoverableGroups | ConvertTo-Html -Fragment
+    $RecoverableGroupsTable = $RecoverableGroups | Sort "Recovery Days Remaining",DisplayName | ConvertTo-Html -Fragment
 }
 
 $ReportBodyHtml = $NewGroupsIntro + $NewGroupsTable + $ModifiedGroupsIntro + $ModifiedGroupsTable + $DeletedGroupsIntro + $DeletedGroupsTable + $RecoverableGroupsIntro + $RecoverableGroupsTable + $UnmodifiedGroupsIntro + $UnmodifiedGroupsTable
