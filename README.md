@@ -6,7 +6,7 @@ The script will store information about the Office 365 Groups in your tenant in 
 
 ## Installation
 
-This script has a dependency on the AzureADPreview module.
+This script has a dependency on the AzureADPreview module, minimum version 2.0.0.127.
 
 This script can make use of the following functions:
 
