@@ -379,7 +379,7 @@ foreach ($Guid in $LastResultsGuids) {
         $DeletedObject = $LastResults | Where {$_.Guid -eq $Guid} | Select DisplayName,AccessType,Notes,ManagedBy,WhenCreated,ExternalDirectoryObjectId
 
         #Get the time stamp the group was deleted
-        $RecoverableGroup = $AllRecoverableGroups | Where {$_.Id -eq $GroupObject.ExternalDirectoryObjectId}
+        $RecoverableGroup = $AllRecoverableGroups | Where {$_.Id -eq $DeletedObject.ExternalDirectoryObjectId}
 
         if (-not($RecoverableGroup)) {
             $WhenDeleted = "Not found."
@@ -395,13 +395,13 @@ foreach ($Guid in $LastResultsGuids) {
 				"Notes" = $DeletedObject.Notes
                 "ManagedBy" = $DeletedObject.ManagedBy
                 "WhenCreated" = $DeletedObject.WhenCreated
+                "WhenDeleted" = $RecoverableGroup.DeletedDateTime.ToShortDateString()
                 "ObjectId" = $DeletedObject.ExternalDirectoryObjectId
-                "WhenDeleted" = $RecoverableGroup.WhenDeleted
 				}
         
         $GroupObject = New-Object -TypeName PSObject -Property $objectProperties
 
-        $DeletedGroups += $DeletedObject
+        $DeletedGroups += $GroupObject
     }
 
 }
