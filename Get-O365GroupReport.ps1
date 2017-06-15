@@ -412,7 +412,7 @@ if ($AllRecoverableGroups.Count -eq 0) {
 else {
     foreach ($RecoverableGroup in $AllRecoverableGroups) {
         
-        $RecoveryDaysRemaining = 30 - ($now - $RecoverableGroup.DeletedDateTime)
+        $RecoveryDaysRemaining = (30 - ($now - $RecoverableGroup.DeletedDateTime)).Days
 
         #Custom object for recoverable groups
         $objectProperties = [ordered]@{
