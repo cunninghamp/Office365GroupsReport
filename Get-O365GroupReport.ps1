@@ -204,6 +204,9 @@ catch {
             throw $_.Exception.Message
         }
     }
+    else {
+        AzureADPreview\Connect-AzureAD
+    }
 }
 
 #...................................
