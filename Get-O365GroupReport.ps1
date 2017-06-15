@@ -216,7 +216,7 @@ else {
 # Retrieve current list of Groups
 #...................................
 
-$UnifiedGroups = @(Get-UnifiedGroup | Select Guid,DisplayName,AccessType,Notes,ManagedBy,WhenCreated)
+$UnifiedGroups = @(Get-UnifiedGroup | Select Guid,DisplayName,AccessType,Notes,ManagedBy,WhenCreated,ExternalDirectoryObjectId)
 
 $LastResultsGuids = $LastResults.Guid
 
