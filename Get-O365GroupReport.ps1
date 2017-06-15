@@ -82,6 +82,16 @@ param (
         [string]$SmtpServer
 )
 
+#...................................
+# Dependency check
+#...................................
+
+#Get-​Azure​AD​MS​Deleted​Group requires the AzureADPreview module
+
+$AzureADModuleName = "AzureADPreview"
+if (-not(Get-Module -ListAvailable $AzureADModuleName)) {
+    throw "The $($AzureADModuleName) module is not installed on this computer."
+}
 
 #...................................
 # Variables
