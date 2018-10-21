@@ -31,10 +31,6 @@ https://github.com/cunninghamp/Office365GroupsReport
 .NOTES
 Written by Paul Cunningham and Chris Brown
 
-For more Office 365 tips, tutorials and news
-check out Practical365.com.
-
-
 Version history:
 V1.00, 20/10/2016 - Initial version
 V1.01, 09/11/2016 - Bug fixes and improvements
