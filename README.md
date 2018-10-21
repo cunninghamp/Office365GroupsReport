@@ -58,7 +58,7 @@ Run the script with manual SMTP settings that override the Get-O365GroupReport.x
 
 Written by:
 
-- Paul Cunningham, [Blog](http://practical365.com) | [GitHub](https://github.com/cunninghamp) | [Twitter](https://twitter.com/paulcunningham)
+- Paul Cunningham, [Blog](https://paulcunningham.me) | [GitHub](https://github.com/cunninghamp) | [Twitter](https://twitter.com/paulcunningham)
 - Chris Brown, [Blog](https://www.flamingkeys.com) | [GitHub](https://github.com/chrisbrownie) | [Twitter](https://twitter.com/chrisbrownie)
 
-For more Office 365 tips, tutorials, and news check out [Practical 365](http://practical365.com).
+Check out my [books](https://paulcunningham.me/books/) and [courses](https://paulcunningham.me/training/) to learn more about Office 365 and Exchange Server.
